@@ -1,0 +1,13 @@
+
+> superu-server@1.0.0 dev
+> tsx src/index.ts
+
+[server] MongoDB connected
+✅ Email service initialized with Gmail SMTP
+✅ Cloudinary service initialized
+✅ Email service initialized with Gmail SMTP
+⚠️ SMS.to API key not configured. SMS service disabled.
+Set SMS_TO_API_KEY in .env to enable SMS.
+✅ Cloudinary service initialized
+✅ Connected to MongoDB
+Server listening on http://localhost:5000
