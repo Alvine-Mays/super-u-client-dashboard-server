@@ -33,22 +33,22 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<any> {
-  let res = await fetch(toApiUrl(url), {
+  const doFetch = () => fetch(toApiUrl(url), {
     method,
     headers: getAuthHeaders(),
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
+  let res = await doFetch();
+
   if (res.status === 401) {
     const refreshed = await refreshTokens();
     if (refreshed) {
-      res = await fetch(toApiUrl(url), {
-        method,
-        headers: getAuthHeaders(),
-        body: data ? JSON.stringify(data) : undefined,
-        credentials: "include",
-      });
+      res = await doFetch();
+    } else {
+      authStorage.clear();
+      window.dispatchEvent(new CustomEvent('auth:changed'));
     }
   }
 

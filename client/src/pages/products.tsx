@@ -38,30 +38,41 @@ export default function Products() {
     setPage(1);
   }, [categorySlug]);
 
-  const { data: categoriesResp } = useQuery<{ success: boolean; data: { items: Category[] } }>({
+  const { data: categoriesResp } = useQuery<{ success?: boolean; data?: { items?: Category[] } } | Category[]>({
     queryKey: ["/api/categories"],
     queryFn: () => apiRequest("GET", "/api/categories"),
   });
-  const categories = categoriesResp?.data.items;
+  const categories: Category[] | undefined = Array.isArray(categoriesResp)
+    ? (categoriesResp as any)
+    : (categoriesResp as any)?.data?.items;
 
   // Build API URL with proper parameters
   const buildProductsUrl = () => {
     const params = new URLSearchParams();
     if (searchQuery) params.append("q", searchQuery);
     if (categorySlug) {
-      const cat = categories?.find(c => c.slug === categorySlug);
-      if (cat) params.append("categoryId", cat._id);
+      const cat = categories?.find((c: any) => c.slug === categorySlug);
+      const catId = (cat as any)?._id || (cat as any)?.id;
+      if (catId) params.append("categoryId", String(catId));
+      else params.append("categorySlug", categorySlug);
     }
     if (page > 1) params.append("page", page.toString());
     return `/api/products${params.toString() ? "?" + params.toString() : ""}`;
   };
 
-  const { data: productsResp, isLoading } = useQuery<{ success: boolean; data: ProductsResponse}>({
+  const { data: productsResp, isLoading } = useQuery<any>({
     queryKey: ["/api/products", searchQuery, categorySlug, sortBy, page, categories?.length || 0],
     queryFn: () => apiRequest("GET", buildProductsUrl()),
     enabled: !categorySlug || !!categories,
   });
-  const productsData = productsResp?.data;
+  const raw = (productsResp as any)?.data ?? (productsResp as any);
+  const items = (raw?.items ?? raw?.results ?? (Array.isArray(raw) ? raw : [])) as any[];
+  const productsData: ProductsResponse = {
+    items,
+    total: (raw?.total ?? raw?.count ?? items.length) as number,
+    page: (raw?.page ?? 1) as number,
+    limit: (raw?.limit ?? 20) as number,
+  };
 
   const currentCategory = categories?.find(c => c.slug === categorySlug);
 
@@ -150,14 +161,14 @@ export default function Products() {
             </div>
           ))}
         </div>
-      ) : productsData && productsData.items.length > 0 ? (
+      ) : productsData && Array.isArray(productsData.items) && productsData.items.length > 0 ? (
         <>
           <div className={viewMode === "grid" ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6" : "space-y-4"}>
             {productsData.items.map((product) => (
               viewMode === "grid" ? (
-                <ProductCard key={product._id} product={{...product, id: product._id} as any} />
+                <ProductCard key={(product as any)._id || (product as any).id} product={{...product, id: (product as any)._id || (product as any).id} as any} />
               ) : (
-                <ProductListItem key={product._id} product={{...product, id: product._id} as any} />
+                <ProductListItem key={(product as any)._id || (product as any).id} product={{...product, id: (product as any)._id || (product as any).id} as any} />
               )
             ))}
           </div>

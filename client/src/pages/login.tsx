@@ -20,9 +20,12 @@ export default function Login() {
     mutationFn: async (data: { emailOrUsername: string; password: string }) => {
       return await apiRequest("POST", "/api/auth/login", data);
     },
-    onSuccess: (data) => {
-      login(data.user, data.access, data.refresh);
-      toast({ title: "Connexion réussie", description: `Bienvenue ${data.user.username} !` });
+    onSuccess: (data: any) => {
+      const user = data?.data?.user ?? data?.user;
+      const access = data?.data?.token ?? data?.access ?? data?.token;
+      const refresh = data?.refresh ?? "";
+      login(user, access, refresh);
+      toast({ title: "Connexion réussie", description: `Bienvenue ${user?.username ?? user?.email}!` });
       navigate("/");
     },
     onError: (error: any) => {

@@ -17,13 +17,16 @@ export function ActivityLogsPage() {
     queryKey: ['/api/staff/activity/all'],
   });
 
-  const getInitials = (name: string) => {
-    return name
+  // Initiales robustes même si le nom est manquant
+  const getInitials = (name?: string) => {
+    const safe = (name ?? 'System').toString().trim();
+    if (!safe) return 'S';
+    return safe
       .split(' ')
-      .map((n) => n[0])
+      .map((n) => n?.[0] ?? '')
       .join('')
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2) || 'S';
   };
 
   const getActionLabel = (action: string) => {
@@ -54,7 +57,7 @@ export function ActivityLogsPage() {
 
   const filteredActivities = activities?.filter(
     (activity) =>
-      activity.staffName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (activity.staffName ?? 'System').toLowerCase().includes(searchQuery.toLowerCase()) ||
       activity.action.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -142,7 +145,7 @@ export function ActivityLogsPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap mb-1">
                                 <span className="font-medium text-sm">
-                                  {activity.staffName}
+                                  {activity.staffName ?? 'System'}
                                 </span>
                                 <Badge variant="outline" className="text-xs">
                                   {activity.staffRole}

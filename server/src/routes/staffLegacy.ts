@@ -34,7 +34,7 @@ export async function mountStaffRoutes(app: Express) {
       if (order.tempPickupCode !== temporaryCode) return res.status(400).json({ message: 'Code temporaire invalide' });
       const finalCode = randomBytes(4).toString('hex').toUpperCase();
       await orders.updateOne({ _id: order._id }, { $set: { status: 'confirmed', finalPickupCode: finalCode, codeValidatedAt: new Date().toISOString(), updatedAt: new Date().toISOString() } });
-      await activityLogs.insertOne({ staffId: 'system', action: 'validated_code', entityType: 'order', entityId: orderId, timestamp: new Date().toISOString(), details: `Code final: ${finalCode}` });
+      await activityLogs.insertOne({ staffId: 'system', staffName: 'System', staffRole: 'system', action: 'validated_code', entityType: 'order', entityId: orderId, timestamp: new Date().toISOString(), details: `Code final: ${finalCode}` });
       const { notifyFinalCode } = await import('../services/notify');
       await notifyFinalCode((order as any).customerEmail, (order as any).customerPhone, finalCode, (order as any).orderNumber);
       res.json({ finalCode });
@@ -51,8 +51,73 @@ export async function mountStaffRoutes(app: Express) {
       if (!order) return res.status(404).json({ message: 'Commande introuvable' });
       if (order.finalPickupCode !== finalCode) return res.status(400).json({ message: 'Code final invalide' });
       await orders.updateOne({ _id: oid }, { $set: { status: 'completed', pickedUpAt: new Date().toISOString(), updatedAt: new Date().toISOString() } });
-      await activityLogs.insertOne({ staffId: 'system', action: 'completed_order', entityType: 'order', entityId: orderId, timestamp: new Date().toISOString(), details: `Retrait validé` });
+      await activityLogs.insertOne({ staffId: 'system', staffName: 'System', staffRole: 'system', action: 'completed_order', entityType: 'order', entityId: orderId, timestamp: new Date().toISOString(), details: `Retrait validé` });
       res.json({ message: 'Pickup completed' });
     } catch (e:any) { console.error('verify-final-code error', e); res.status(500).json({ message: 'Erreur serveur' }); }
+  });
+
+  // Staff management routes
+  app.get('/api/staff/list', authJWT, requireRole('admin'), async (_req: Request, res: Response) => {
+    try {
+      const list = await staff.find({}).toArray();
+      const out = list.map((s: any) => ({
+        id: s._id.toString(),
+        name: s.name,
+        email: s.email,
+        phone: s.phone,
+        role: s.role,
+        isActive: s.isActive !== false,
+      }));
+      res.json(out);
+    } catch (e: any) {
+      console.error('list staff error', e);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  });
+
+  app.post('/api/staff/create', authJWT, requireRole('admin'), async (req: Request, res: Response) => {
+    try {
+      console.log('Données reçues:', req.body);
+      const { name, email, password, role, phone } = req.body || {};
+      if (!name || !email || !password || !role) return res.status(400).json({ message: 'Champs requis manquants' });
+      if (!['caissier','preparateur','admin'].includes(role)) return res.status(400).json({ message: 'Rôle invalide' });
+      const exists = await staff.findOne({ email });
+      if (exists) return res.status(409).json({ message: 'Email déjà utilisé' });
+      const hash = await bcrypt.hash(password, 10);
+      const doc = {
+        name,
+        email,
+        phone: phone || null,
+        role,
+        password: hash,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as any;
+      const insert = await staff.insertOne(doc);
+      const newStaff = { id: insert.insertedId.toString(), name, email, phone: phone || null, role, isActive: true } as any;
+      console.log('Staff créé:', newStaff);
+      await activityLogs.insertOne({ staffId: (req as any).user?.id || 'system', staffRole: (req as any).user?.role || 'admin', action: 'created_staff', entityType: 'staff', entityId: insert.insertedId.toString(), timestamp: new Date().toISOString(), details: `${name} (${role})` });
+      res.status(201).json(newStaff);
+    } catch (e: any) {
+      console.error('create staff error', e);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  });
+
+  app.delete('/api/staff/:id', authJWT, requireRole('admin'), async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      let oid: ObjectId; try { oid = new ObjectId(id); } catch { return res.status(400).json({ message: 'Identifiant invalide' }); }
+      const existing: any = await staff.findOne({ _id: oid });
+      if (!existing) return res.status(404).json({ message: 'Staff introuvable' });
+      if (existing.role === 'admin') return res.status(400).json({ message: 'Impossible de supprimer un admin' });
+      await staff.deleteOne({ _id: oid });
+      await activityLogs.insertOne({ staffId: (req as any).user?.id || 'system', staffRole: (req as any).user?.role || 'admin', action: 'deleted_staff', entityType: 'staff', entityId: id, timestamp: new Date().toISOString(), details: `${existing.name} (${existing.role})` });
+      res.status(204).end();
+    } catch (e: any) {
+      console.error('delete staff error', e);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
   });
 }

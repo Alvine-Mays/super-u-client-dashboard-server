@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCartStore } from "@/stores/cart-store";
 import { SearchSuggestions } from "./search-suggestions";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import type { Category } from "@/types";
 
 export function Header() {
@@ -18,9 +19,12 @@ export function Header() {
   const [showSearch, setShowSearch] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
-  const { data: categories = [] } = useQuery<Category[]>({
+  // Récupère les catégories via l'API standardisée { success, data: { items } }
+  const { data: catResp } = useQuery<{ success?: boolean; data?: { items?: Category[] } } | Category[]>({
     queryKey: ["/api/categories"],
+    queryFn: () => apiRequest("GET", "/api/categories"),
   });
+  const categories: any[] = Array.isArray(catResp) ? (catResp as any) : (catResp as any)?.data?.items ?? [];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,10 +73,11 @@ export function Header() {
                   <Link href="/produits" className="block w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                     Tous les produits
                   </Link>
-                  {categories.map((category) => (
+                  {categories.map((category: any) => (
                     <Link
-                      key={category.id}
+                      key={category._id ?? category.id}
                       href={`/categories/${category.slug}`}
+                      onClick={() => setShowCategoriesDropdown(false)}
                       className="block w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     >
                       {category.name}

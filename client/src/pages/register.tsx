@@ -14,21 +14,21 @@ export default function Register() {
   const { login } = useAuth();
   const { toast } = useToast();
   const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const registerMutation = useMutation({
-    mutationFn: async (data: { username: string; email: string; password: string }) => {
+    mutationFn: async (data: { username: string; email: string; password: string; phone?: string }) => {
       return await apiRequest("POST", "/api/auth/register", data);
     },
-    onSuccess: async (data) => {
-      // Auto-login after registration
-      const loginData = await apiRequest("POST", "/api/auth/login", {
-        emailOrUsername: email,
-        password,
-      });
-      login(loginData.user, loginData.access, loginData.refresh);
+    onSuccess: async (_data) => {
+      const loginData: any = await apiRequest("POST", "/api/auth/login", { emailOrUsername: email, password });
+      const user = loginData?.data?.user ?? loginData?.user;
+      const access = loginData?.data?.token ?? loginData?.access ?? loginData?.token;
+      const refresh = loginData?.refresh ?? "";
+      login(user, access, refresh);
       toast({ title: "Compte créé", description: "Votre compte a été créé avec succès !" });
       navigate("/");
     },
@@ -53,6 +53,11 @@ export default function Register() {
       return;
     }
 
+    if (phone.trim().length < 7) {
+      toast({ title: "Erreur", description: "Numéro de téléphone invalide", variant: "destructive" });
+      return;
+    }
+
     if (password.length < 6) {
       toast({
         title: "Erreur",
@@ -62,7 +67,7 @@ export default function Register() {
       return;
     }
 
-    registerMutation.mutate({ username, email, password });
+    registerMutation.mutate({ username, email, password, phone });
   };
 
   return (
@@ -101,6 +106,20 @@ export default function Register() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 data-testid="input-email"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="phone" className="text-sm font-medium">
+                Téléphone
+              </label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+                data-testid="input-phone"
               />
             </div>
 

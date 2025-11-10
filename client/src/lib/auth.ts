@@ -6,24 +6,25 @@ const USER_KEY = "user";
 
 export const authStorage = {
   getAccessToken: (): string | null => localStorage.getItem(ACCESS_TOKEN_KEY),
-  setAccessToken: (token: string) => localStorage.setItem(ACCESS_TOKEN_KEY, token),
-  removeAccessToken: () => localStorage.removeItem(ACCESS_TOKEN_KEY),
+  setAccessToken: (token: string) => { localStorage.setItem(ACCESS_TOKEN_KEY, token); window.dispatchEvent(new CustomEvent('auth:changed')); },
+  removeAccessToken: () => { localStorage.removeItem(ACCESS_TOKEN_KEY); window.dispatchEvent(new CustomEvent('auth:changed')); },
   
   getRefreshToken: (): string | null => localStorage.getItem(REFRESH_TOKEN_KEY),
-  setRefreshToken: (token: string) => localStorage.setItem(REFRESH_TOKEN_KEY, token),
-  removeRefreshToken: () => localStorage.removeItem(REFRESH_TOKEN_KEY),
+  setRefreshToken: (token: string) => { localStorage.setItem(REFRESH_TOKEN_KEY, token); window.dispatchEvent(new CustomEvent('auth:changed')); },
+  removeRefreshToken: () => { localStorage.removeItem(REFRESH_TOKEN_KEY); window.dispatchEvent(new CustomEvent('auth:changed')); },
   
   getUser: (): User | null => {
     const user = localStorage.getItem(USER_KEY);
     return user ? JSON.parse(user) : null;
   },
-  setUser: (user: User) => localStorage.setItem(USER_KEY, JSON.stringify(user)),
-  removeUser: () => localStorage.removeItem(USER_KEY),
+  setUser: (user: User) => { localStorage.setItem(USER_KEY, JSON.stringify(user)); window.dispatchEvent(new CustomEvent('auth:changed')); },
+  removeUser: () => { localStorage.removeItem(USER_KEY); window.dispatchEvent(new CustomEvent('auth:changed')); },
   
   clear: () => {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    window.dispatchEvent(new CustomEvent('auth:changed'));
   },
 };
 

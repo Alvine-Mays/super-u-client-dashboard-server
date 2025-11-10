@@ -42,7 +42,11 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
 }
 
 export function generatePasswordResetTemplate(resetLink: string, username: string): string {
-  return `<!DOCTYPE html><html><body><h2>Réinitialisation du mot de passe</h2><p>Bonjour ${username},</p><p>Cliquez ici: <a href="${resetLink}">Réinitialiser</a></p></body></html>`;
+  return `<!DOCTYPE html><html><body><h2>Réinitialisation du mot de passe</h2><p>Bonjour ${username || ''},</p><p>Cliquez ici: <a href="${resetLink}">Réinitialiser</a></p></body></html>`;
+}
+
+export function generateWelcomeTemplate(username: string): string {
+  return `<!DOCTYPE html><html><body><h2>Bienvenue chez Géant Casino</h2><p>Bonjour ${username || 'client'},</p><p>Votre compte a été créé avec succès. Vous pouvez dès maintenant parcourir notre catalogue et passer commande.</p><p><a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}">Commencer mes courses</a></p></body></html>`;
 }
 
 export function generateOrderConfirmationTemplate(orderNumber: string, customerName: string, items: Array<{ productName: string; quantity: number; price: number }>, total: number, tempPickupCode: string, pickupDate: string, pickupTime: string): string {

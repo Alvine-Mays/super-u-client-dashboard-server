@@ -18,7 +18,10 @@ export default function CategoriesPage() {
 
   const categories = useQuery<{ success: boolean; data: { items: any[] } }>({
     queryKey: ['/api/categories'],
-    queryFn: () => apiRequest('GET', '/api/categories?limit=100')
+    queryFn: () => apiRequest('GET', '/api/categories?limit=100'),
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   const saveMutation = useMutation({
@@ -46,6 +49,12 @@ export default function CategoriesPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['/api/categories'] })
   });
 
+  if (categories.isLoading) {
+    return <div className="p-6">Chargement...</div>;
+  }
+  if (categories.isError) {
+    return <div className="p-6">Erreur de chargement des catégories</div>;
+  }
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Catégories</h1>
@@ -90,8 +99,12 @@ export default function CategoriesPage() {
               </tr>
             </thead>
             <tbody>
-              {categories.data?.data.items.map(c => (
-                <tr key={c._id} className="border-b">
+              {(
+                (Array.isArray((categories.data as any))
+                  ? (categories.data as any)
+                  : (((categories.data as any)?.data?.items) ?? ((categories.data as any)?.items) ?? [])) as any[]
+              ).map((c: any) => (
+                <tr key={c._id || c.id} className="border-b">
                   <td className="py-2">
                     {c.imageUrl && (
                       <img src={c.imageUrl} alt={c.name} className="w-12 h-12 object-cover rounded" />
@@ -104,7 +117,7 @@ export default function CategoriesPage() {
                       variant="outline" 
                       size="sm" 
                       onClick={()=>{ 
-                        setEditingId(c._id); 
+                        setEditingId(c._id || c.id); 
                         setForm({ 
                           name: c.name, 
                           slug: c.slug, 
@@ -118,7 +131,7 @@ export default function CategoriesPage() {
                     <Button 
                       variant="destructive" 
                       size="sm" 
-                      onClick={()=>deleteMutation.mutate(c._id)}
+                      onClick={()=>deleteMutation.mutate(c._id || c.id)}
                     >
                       Supprimer
                     </Button>

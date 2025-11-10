@@ -28,21 +28,21 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
   const [showPasswords, setShowPasswords] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'password'>('info');
 
+  const { updateUser } = useAuth();
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
       return await apiRequest('PATCH', '/api/auth/me', data);
     },
-    onSuccess: () => {
+    onSuccess: (res: any) => {
+      const updated = res?.data ?? res;
+      if (updated) updateUser(updated);
       toast({ title: 'Profil mis à jour', description: 'Vos informations ont été sauvegardées' });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       onOpenChange(false);
     },
     onError: (error: any) => {
-      toast({
-        title: 'Erreur',
-        description: error.message || 'Impossible de mettre à jour le profil',
-        variant: 'destructive',
-      });
+      const msg = error?.message || error?.error || 'Impossible de mettre à jour le profil';
+      toast({ title: 'Erreur', description: msg, variant: 'destructive' });
     },
   });
 

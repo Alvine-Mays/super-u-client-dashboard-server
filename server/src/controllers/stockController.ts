@@ -10,17 +10,23 @@ const movementSchema = z.object({
 
 export const stockController = {
   in: async (req: Request, res: Response) => {
-    const { productId, quantity, reason } = movementSchema.parse(req.body);
+    const parsed = movementSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors?.[0]?.message || 'Invalid data' });
+    const { productId, quantity, reason } = parsed.data;
     const result = await stockService.moveIn(productId, quantity, reason, req.user!.id);
     res.json({ success: true, data: result });
   },
   out: async (req: Request, res: Response) => {
-    const { productId, quantity, reason } = movementSchema.parse(req.body);
+    const parsed = movementSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors?.[0]?.message || 'Invalid data' });
+    const { productId, quantity, reason } = parsed.data;
     const result = await stockService.moveOut(productId, quantity, reason, req.user!.id);
     res.json({ success: true, data: result });
   },
   adjust: async (req: Request, res: Response) => {
-    const { productId, quantity, reason } = movementSchema.parse(req.body);
+    const parsed = movementSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.errors?.[0]?.message || 'Invalid data' });
+    const { productId, quantity, reason } = parsed.data;
     const result = await stockService.adjust(productId, quantity, reason, req.user!.id);
     res.json({ success: true, data: result });
   },

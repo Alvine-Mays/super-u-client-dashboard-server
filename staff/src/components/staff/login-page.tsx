@@ -34,8 +34,13 @@ export function StaffLoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginFormData) => {
-      const response = await apiRequest<{ success: boolean; data: { user: Staff; token: string } }>('POST', '/api/staff/auth/login', data);
-      return response;
+      try {
+        const response = await apiRequest<{ success: boolean; data: { user: Staff; token: string } }>('POST', '/api/staff/auth/login', data);
+        return response;
+      } catch (e: any) {
+        console.error('[STAFF LOGIN] Échec de connexion:', e);
+        throw e;
+      }
     },
     onSuccess: (res) => {
       const { user, token } = res.data;

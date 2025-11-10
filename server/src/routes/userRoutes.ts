@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid';
 import { storage } from '../legacy/storage';
 import { generateAccessToken, authMiddleware, optionalAuthMiddleware, type AuthRequest } from '../middleware/auth';
 import { issueInitialRefreshToken, rotateRefreshToken } from '../auth/refresh-tokens';
-import { sendEmail, initializeEmailService, generatePasswordResetTemplate, generateOrderConfirmationTemplate } from '../services/email';
+import { sendEmail, initializeEmailService, generatePasswordResetTemplate, generateOrderConfirmationTemplate, generateWelcomeTemplate } from '../services/email';
 import { sendSMS, initializeSMSService, generatePasswordResetSMSMessage, generateTwoFactorSMSMessage, generateOrderConfirmationSMSMessage } from '../services/sms';
 import { initializeCloudinaryService, getCloudinarySignature } from '../services/cloudinary';
 import { getCollections } from '../legacy/db';
@@ -17,13 +17,15 @@ export async function mountUserRoutes(app: Express) {
 
   app.post('/api/auth/register', async (req: Request, res: Response) => {
     try {
-      const { username, email, password } = req.body;
+      const { username, email, password, phone } = req.body;
       if (!username || !email || !password) return res.status(400).json({ error: 'Missing fields' });
       const existingUser = await storage.getUserByEmail(email) || await storage.getUserByUsername(username);
       if (existingUser) return res.status(400).json({ error: 'Email or username already registered' });
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await storage.createUser({ username, email, password: hashedPassword });
+      const user = await storage.createUser({ username, email, phone, password: hashedPassword });
       const { password: _pw, ...userWithoutPassword } = user as any;
+      // Send welcome email if configured
+      try { await sendEmail(email, 'Bienvenue chez Géant Casino', generateWelcomeTemplate(username)); } catch {}
       res.status(201).json(userWithoutPassword);
     } catch (e: any) { res.status(400).json({ error: e.message || 'Registration failed' }); }
   });

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageUpload } from '@/components/image-upload';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
 
 export default function ProductsPage() {
@@ -26,7 +27,10 @@ export default function ProductsPage() {
 
   const categories = useQuery<{ success: boolean; data: { items: any[] } }>({
     queryKey: ['/api/categories'],
-    queryFn: () => apiRequest('GET', '/api/categories?limit=100')
+    queryFn: () => apiRequest('GET', '/api/categories?limit=100'),
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   const saveMutation = useMutation({
@@ -37,7 +41,9 @@ export default function ProductsPage() {
       if (form.images.length === 0) {
         throw new Error('Au moins une image est requise');
       }
-      const payload: any = { ...form, price: Number(form.price) };
+      // Adapter le payload au schéma backend (stockQuantity attendu en base)
+      const payload: any = { ...form, price: Number(form.price), stockQuantity: Number(form.stock) };
+      delete payload.stock;
       if (editingId) {
         return apiRequest('PUT', `/api/products/${editingId}`, payload);
       }
@@ -55,6 +61,12 @@ export default function ProductsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['/api/products'] })
   });
 
+  if (products.isLoading || categories.isLoading) {
+    return <div className="p-6">Chargement...</div>;
+  }
+  if (products.isError || categories.isError) {
+    return <div className="p-6">Erreur de chargement des données</div>;
+  }
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Produits</h1>
@@ -89,16 +101,20 @@ export default function ProductsPage() {
           />
           
           <Label>Catégorie *</Label>
-          <select 
-            className="w-full border rounded p-2" 
-            value={form.categoryId} 
-            onChange={e=>setForm(f=>({...f, categoryId: e.target.value}))}
-          >
-            <option value="">-- Choisir --</option>
-            {categories.data?.data.items.map(c => (
-              <option key={c._id} value={c._id}>{c.name}</option>
-            ))}
-          </select>
+          <Select value={form.categoryId} onValueChange={(v)=>setForm(f=>({...f, categoryId: v}))}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="-- Choisir --" />
+            </SelectTrigger>
+            <SelectContent className="bg-black text-white border-neutral-800">
+              {(
+                (Array.isArray((categories.data as any))
+                  ? (categories.data as any)
+                  : (((categories.data as any)?.data?.items) ?? ((categories.data as any)?.items) ?? [])) as any[]
+              ).map((c: any) => (
+                <SelectItem key={c._id || c.id} value={(c._id || c.id) as string}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <Label>Description</Label>
           <Input 
@@ -136,8 +152,12 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products.data?.data.items.map(p => (
-                <tr key={p._id} className="border-b">
+              {(
+                (Array.isArray((products.data as any))
+                  ? (products.data as any)
+                  : (((products.data as any)?.data?.items) ?? ((products.data as any)?.items) ?? ((products.data as any)?.results) ?? [])) as any[]
+              ).map((p: any) => (
+                <tr key={(p._id || p.id)} className="border-b">
                   <td className="py-2">
                     {p.images?.[0] && (
                       <img src={p.images[0]} alt={p.name} className="w-12 h-12 object-cover rounded" />
@@ -151,7 +171,7 @@ export default function ProductsPage() {
                       variant="outline" 
                       size="sm" 
                       onClick={()=>{ 
-                        setEditingId(p._id); 
+                        setEditingId(p._id || p.id); 
                         setForm({ 
                           name: p.name, 
                           sku: p.sku, 
@@ -159,7 +179,7 @@ export default function ProductsPage() {
                           categoryId: p.categoryId,
                           description: p.description || '',
                           images: p.images || [],
-                          stock: p.stockQuantity || 0,
+                          stock: (p.stockQuantity ?? p.stock ?? 0),
                         }); 
                       }}
                     >
@@ -168,7 +188,7 @@ export default function ProductsPage() {
                     <Button 
                       variant="destructive" 
                       size="sm" 
-                      onClick={()=>deleteMutation.mutate(p._id)}
+                      onClick={()=>deleteMutation.mutate(p._id || p.id)}
                     >
                       Supprimer
                     </Button>

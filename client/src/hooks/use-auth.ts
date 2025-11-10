@@ -7,9 +7,19 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = authStorage.getUser();
-    setUser(storedUser);
+    const load = () => setUser(authStorage.getUser());
+    load();
     setIsLoading(false);
+    const onStorage = (e: StorageEvent) => {
+      if (["access_token","refresh_token","user"].includes(e.key || "")) load();
+    };
+    const onAuthChanged = () => load();
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('auth:changed', onAuthChanged);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('auth:changed', onAuthChanged);
+    };
   }, []);
 
   const login = (user: User, accessToken: string, refreshToken: string) => {

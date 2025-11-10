@@ -6,11 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Category } from "@/types";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
-  const { data: categories, isLoading } = useQuery<Category[]>({
+  // L'API renvoie { success, data: { items: Category[] } }
+  const { data: catResp, isLoading } = useQuery<{ success?: boolean; data?: { items?: Category[] } } | Category[]>({
     queryKey: ["/api/categories"],
+    queryFn: () => apiRequest("GET", "/api/categories"),
   });
+  const categories: any[] = Array.isArray(catResp) ? (catResp as any) : (catResp as any)?.data?.items ?? [];
 
   return (
     <div className="min-h-screen">
@@ -77,9 +81,9 @@ export default function Home() {
           </div>
         ) : categories && categories.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {categories.map((category) => (
+            {categories.map((category: any) => (
               <Link
-                key={category.id}
+                key={(category as any)._id ?? category.id}
                 href={`/categories/${category.slug}`}
               >
                 <Card className="overflow-hidden hover-elevate active-elevate-2 cursor-pointer group" data-testid={`category-card-${category.slug}`}>
@@ -95,7 +99,7 @@ export default function Home() {
                         {category.name}
                       </h3>
                       <p className="text-sm text-white/80">
-                        {category.productCount} produits
+                        {(category as any).productCount ?? 0} produits
                       </p>
                     </div>
                   </div>

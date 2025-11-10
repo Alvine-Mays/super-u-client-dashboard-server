@@ -98,13 +98,15 @@ export function StaffManagementPage() {
       staff.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getInitials = (name: string) => {
-    return name
+  const getInitials = (name?: string) => {
+    const safe = (name ?? 'S').toString().trim();
+    if (!safe) return 'S';
+    return safe
       .split(' ')
-      .map((n) => n[0])
+      .map((n) => n?.[0] ?? '')
       .join('')
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2) || 'S';
   };
 
   const getRoleLabel = (role: string) => {

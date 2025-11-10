@@ -18,6 +18,12 @@ async function bootstrap() {
     verify: (req: any, _res, buf) => { req.rawBody = buf; },
   } as any));
   app.use(morgan('dev'));
+  // Journalisation personnalisée des requêtes (méthode, URL et utilisateur si authentifié)
+  app.use((req, _res, next) => {
+    const u = (req as any).user;
+    console.log(`[REQ] ${req.method} ${req.url}`, u ? { user: u.email, role: u.role } : {});
+    next();
+  });
 
   // Initialize external services
   initializeEmailService();

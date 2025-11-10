@@ -4,6 +4,7 @@ const userSchema = new Schema(
   {
     email: { type: String, unique: true, required: true, index: true },
     passwordHash: { type: String, required: true },
+    phone: { type: String, required: false },
     role: { type: String, enum: ['admin', 'staff', 'customer', 'caissier', 'preparateur'], default: 'customer', index: true },
     status: { type: String, enum: ['active', 'disabled'], default: 'active' },
   },
