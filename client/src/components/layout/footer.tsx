@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
 
 export function Footer() {
   return (
@@ -8,7 +9,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
+              <div className="w-10 h-10 bg-red-600 rounded-md flex items-center justify-center">
                 <span className="text-primary-foreground font-heading font-bold text-xl">GC</span>
               </div>
               <div>
@@ -83,10 +84,26 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-border">
-          <p className="text-center text-sm text-muted-foreground">
+        <div className="mt-8 pt-8 border-t border-border flex items-center justify-between">
+          <p className="text-left text-sm text-muted-foreground">
             © {new Date().getFullYear()} Géant Casino Brazzaville. Tous droits réservés.
           </p>
+
+          {/* Social icons (aligned right) */}
+          <div className="flex items-center gap-4">
+            <a href="#" aria-label="Facebook" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Facebook className="h-4 w-4" />
+            </a>
+            <a href="#" aria-label="Instagram" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Instagram className="h-4 w-4" />
+            </a>
+            <a href="#" aria-label="Twitter" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Twitter className="h-4 w-4" />
+            </a>
+            <a href="#" aria-label="LinkedIn" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Linkedin className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>

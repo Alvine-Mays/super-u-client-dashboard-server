@@ -40,7 +40,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16 gap-4">
           <Link href="/" className="flex-shrink-0">
             <div className="flex items-center gap-2" data-testid="link-home">
-              <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
+              <div className="w-10 h-10 bg-red-600 rounded-md flex items-center justify-center">
                 <span className="text-primary-foreground font-heading font-bold text-xl">GC</span>
               </div>
               <div className="hidden md:block">
@@ -154,7 +154,7 @@ export function Header() {
                     className="flex items-center gap-2"
                     data-testid="button-account"
                   >
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
+                    <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-primary-foreground text-sm font-bold">
                       {user?.username?.charAt(0).toUpperCase()}
                     </div>
                     <span className="hidden lg:inline text-sm">{user?.username}</span>

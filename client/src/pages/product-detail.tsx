@@ -132,7 +132,7 @@ export default function ProductDetail() {
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`aspect-square rounded-lg overflow-hidden border-2 ${selectedImage === index ? "border-primary" : "border-transparent"} hover-elevate`}
+                  className={`aspect-square rounded-lg overflow-hidden border-2 ${selectedImage === index ? "border-red-600" : "border-transparent"} hover-elevate`}
                   data-testid={`img-thumb-${index}`}
                 >
                   <img src={img} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />

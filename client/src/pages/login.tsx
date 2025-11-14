@@ -72,7 +72,7 @@ export default function Login() {
                 <label htmlFor="password" className="text-sm font-medium">
                   Mot de passe
                 </label>
-                <Link href="/mot-de-passe-oublie" className="text-xs text-primary hover:underline" data-testid="link-forgot-password">
+                <Link href="/mot-de-passe-oublie" className="text-xs text-red-500 hover:underline" data-testid="link-forgot-password">
                   Mot de passe oublié?
                 </Link>
               </div>
@@ -105,7 +105,7 @@ export default function Login() {
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Pas encore de compte ? </span>
-            <Link href="/inscription" className="text-primary font-medium hover:underline" data-testid="link-register">
+            <Link href="/inscription" className="text-red-500 font-medium hover:underline" data-testid="link-register">
               Créer un compte
             </Link>
           </div>

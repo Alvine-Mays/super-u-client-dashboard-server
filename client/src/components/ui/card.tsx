@@ -9,7 +9,8 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "shadcn-card rounded-xl border bg-card border-card-border text-card-foreground shadow-sm",
+      // Add a smooth shadow-on-hover effect for all cards/blocks
+      "shadcn-card rounded-xl border bg-card border-card-border text-card-foreground shadow-sm hover:shadow-lg transition-shadow duration-200",
       className
     )}
     {...props}

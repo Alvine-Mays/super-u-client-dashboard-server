@@ -171,7 +171,7 @@ export default function Register() {
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Déjà un compte ? </span>
-            <Link href="/connexion" className="text-primary font-medium hover:underline" data-testid="link-login">
+            <Link href="/connexion" className="text-red-500 font-medium hover:underline" data-testid="link-login">
               Se connecter
             </Link>
           </div>

@@ -49,7 +49,7 @@ export default function Cart() {
 
                   <div className="flex-1 min-w-0">
                     <Link href={`/produits/${item.productId}`}>
-                      <h3 className="font-heading font-semibold text-lg text-foreground mb-2 hover:text-primary" data-testid={`text-item-name-${item.productId}`}>
+                      <h3 className="font-heading font-semibold text-lg text-foreground mb-2 hover:text-red-500" data-testid={`text-item-name-${item.productId}`}>
                         {item.name}
                       </h3>
                     </Link>
@@ -123,7 +123,7 @@ export default function Cart() {
               <div className="border-t border-border pt-4 mb-6">
                 <div className="flex justify-between items-center">
                   <span className="font-heading font-bold text-lg">Total</span>
-                  <span className="font-heading font-bold text-2xl text-primary" data-testid="text-total">
+                  <span className="font-heading font-bold text-2xl text-red-400" data-testid="text-total">
                     {getTotal().toLocaleString()} FCFA
                   </span>
                 </div>
